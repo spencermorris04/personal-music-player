@@ -51,7 +51,7 @@ export const env = createEnv({
     NEXT_PUBLIC_CLOUDFLARE_ENDPOINT: process.env.NEXT_PUBLIC_CLOUDFLARE_ENDPOINT,
     CLOUDFLARE_BUCKET_NAME: process.env.CLOUDFLARE_BUCKET_NAME,
   },
-  
+
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
    * useful for Docker builds.
