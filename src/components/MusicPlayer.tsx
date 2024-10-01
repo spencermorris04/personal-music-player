@@ -2,19 +2,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { FaPlay, FaPause } from 'react-icons/fa';
-
-type Song = {
-  id: number;
-  r2Id: string;
-  songTitle: string;
-  artistName: string; // Added artistName
-  uploaderUserId: string;
-  genre: string;
-  instruments: string;
-  description: string;
-  lyrics: string;
-  createdAt: string;
-};
+import { Song, CachedSong } from '~/types';
+import { addSongToDB, getSongFromDB } from '~/utils/indexedDB';
+import useOnlineStatus from '~/hooks/useOnlineStatus';
 
 type MusicPlayerProps = {
   song: Song | null;
@@ -26,36 +16,73 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
-    if (song) {
-      const fetchPreSignedUrl = async () => {
-        try {
-          const response = await fetch(`/api/songs/play/${song.r2Id}`);
+    const setupAudio = async () => {
+      if (song) {
+        // Check if the song exists in IndexedDB
+        const cachedSong = await getSongFromDB(song.r2Id);
 
-          if (response.ok) {
-            const data = await response.json();
-            setAudioUrl(data.url);
-            setIsPlaying(true);
-          } else {
-            const errorData = await response.json();
-            console.error(`Error from play API: ${errorData.error}`);
-            alert(`Error: ${errorData.error}`);
+        if (cachedSong) {
+          // Create a Blob URL from the cached blob
+          const blobUrl = URL.createObjectURL(cachedSong.blob);
+          setAudioUrl(blobUrl);
+          setIsPlaying(true);
+        } else if (isOnline) {
+          // Fetch from API and cache it
+          try {
+            const response = await fetch(`/api/songs/play/${song.r2Id}`);
+
+            if (response.ok) {
+              const data = await response.json();
+              const audioResponse = await fetch(data.url);
+              const blob = await audioResponse.blob();
+
+              // Create a CachedSong object
+              const cached: CachedSong = {
+                ...song,
+                blob: blob,
+              };
+
+              // Add to IndexedDB
+              await addSongToDB(cached);
+
+              // Create a Blob URL
+              const blobUrl = URL.createObjectURL(blob);
+              setAudioUrl(blobUrl);
+              setIsPlaying(true);
+            } else {
+              const errorData = await response.json();
+              console.error(`Error from play API: ${errorData.error}`);
+              alert(`Error: ${errorData.error}`);
+            }
+          } catch (error) {
+            console.error('Error fetching song:', error);
+            alert('An error occurred while trying to play the song.');
           }
-        } catch (error) {
-          console.error('Error fetching pre-signed URL:', error);
-          alert('An error occurred while trying to play the song.');
+        } else {
+          // Offline and song not cached
+          alert('You are offline and this song is not cached.');
         }
-      };
-      fetchPreSignedUrl();
-    } else {
-      // No song selected, reset audioUrl and other states
-      setAudioUrl(null);
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-    }
-  }, [song]);
+      } else {
+        // No song selected, reset audioUrl and other states
+        setAudioUrl(null);
+        setIsPlaying(false);
+        setCurrentTime(0);
+        setDuration(0);
+      }
+    };
+
+    setupAudio();
+    // Cleanup Blob URLs when song changes or component unmounts
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song, isOnline]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -122,7 +149,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
           </button>
           <div>
             <h4 className="text-lg font-semibold">{song.songTitle}</h4>
-            <p className="text-sm">Artist: {song.artistName}</p> {/* Display Artist Name */}
+            <p className="text-sm">Artist: {song.artistName}</p>
             <p className="text-sm">{song.genre}</p>
           </div>
         </div>

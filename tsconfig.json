@@ -15,7 +15,7 @@
     "checkJs": true,
 
     /* Bundled projects */
-    "lib": ["dom", "dom.iterable", "ES2022"],
+    "lib": ["dom", "dom.iterable", "ES2022", "webworker"], // Added "webworker"
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -27,7 +27,10 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+
+    /* Added Types */
+    "types": ["@serwist/next/typings"]
   },
   "include": [
     ".eslintrc.cjs",

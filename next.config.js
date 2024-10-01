@@ -1,10 +1,17 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
-await import("./src/env.js");
+// next.config.js
+
+import withSerwistInit from '@serwist/next';
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const nextConfig = {
+  reactStrictMode: true,
+  // Add other Next.js configurations here if needed
+};
 
-export default config;
+// Initialize serwist with your service worker configurations
+const withSerwist = withSerwistInit({
+  swSrc: 'public/sw.ts',     // Path to your custom service worker source
+  swDest: 'public/sw.js',     // Destination path for the compiled service worker
+});
+
+export default withSerwist(nextConfig);

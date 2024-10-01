@@ -1,0 +1,21 @@
+{
+    "short_name": "MusicPlayer",
+    "name": "Music Player App",
+    "icons": [
+      {
+        "src": "/icons/icon-16x16.png",
+        "sizes": "16x16",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-32x32.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff"
+  }
+  
