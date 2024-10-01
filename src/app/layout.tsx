@@ -3,10 +3,11 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
-import { type Metadata } from "next";
+import type { Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import ErrorBoundary from '~/components/ErrorBoundary'; // Import the ErrorBoundary
+import ServiceWorkerRegistration from '~/components/ServiceWorkerRegistration'; // Import the ServiceWorkerRegistration
 
 export const metadata: Metadata = {
   title: "Music Player App",
@@ -34,7 +35,10 @@ export default function RootLayout({
       </head>
       <body>
         <ErrorBoundary>
-          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <TRPCReactProvider>
+            {children}
+            <ServiceWorkerRegistration /> {/* Register Service Worker */}
+          </TRPCReactProvider>
         </ErrorBoundary>
       </body>
     </html>

@@ -1,11 +1,13 @@
 // src/hooks/useOnlineStatus.ts
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const useOnlineStatus = (): boolean => {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
